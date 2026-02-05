@@ -113,6 +113,73 @@ server.max-http-request-header-size=16KB
 
 参考: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Configuration-Changelog
 
+#### 问题：SecurityConfig 用户配置不完整（OpenRewrite 已知问题）
+
+**错误信息**:
+```
+java.lang.IllegalArgumentException: Cannot pass null or empty values to constructor
+    at org.springframework.security.core.userdetails.User.<init>
+```
+
+**原因**: OpenRewrite 在转换 `AuthenticationManagerBuilder` 到 `InMemoryUserDetailsManager` 时，可能会丢失密码和角色配置。
+
+**迁移前代码** (Spring Boot 2):
+```java
+@Override
+protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    auth.inMemoryAuthentication()
+        .withUser("user")
+            .password(passwordEncoder().encode("password"))
+            .roles("USER")
+        .and()
+        .withUser("admin")
+            .password(passwordEncoder().encode("admin"))
+            .roles("ADMIN", "USER");
+}
+```
+
+**OpenRewrite 错误输出** (Spring Boot 3):
+```java
+@Bean
+InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
+    return new InMemoryUserDetailsManager(
+        User.builder().username("admin").build()  // ❌ 缺少密码和角色
+    );
+}
+```
+
+**正确的修复**:
+```java
+@Bean
+InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
+    return new InMemoryUserDetailsManager(
+        User.builder()
+            .username("user")
+            .password(passwordEncoder().encode("password"))
+            .roles("USER")
+            .build(),
+        User.builder()
+            .username("admin")
+            .password(passwordEncoder().encode("admin"))
+            .roles("ADMIN", "USER")
+            .build()
+    );
+}
+```
+
+**检查方法**:
+迁移后，搜索 `SecurityConfig.java` 中的 `InMemoryUserDetailsManager`，确保每个用户都包含：
+- `.username()`
+- `.password()` ⚠️ 必须检查
+- `.roles()` 或 `.authorities()` ⚠️ 必须检查
+
+**自动化检查脚本**:
+```bash
+# 检查 SecurityConfig 是否缺少密码配置
+grep -A 3 "InMemoryUserDetailsManager" src/main/java/**/SecurityConfig.java | \
+  grep -q ".password(" || echo "⚠️ 警告：SecurityConfig 可能缺少密码配置"
+```
+
 ---
 
 ### 3. 依赖冲突
