@@ -13,13 +13,11 @@
 
 ## 📋 迁移内容
 
-- **Spring Boot**: 2.x → 3.3 (可手动升级到 3.5.10)
+- **Spring Boot**: 2.x → 3.5
 - **JDK**: 8 → 17 (OpenRewrite 默认) 或 21
 - **Jakarta EE**: javax.* → jakarta.*
 - **Hibernate**: 5.x → 6.x
 - **Spring Framework**: 5.x → 6.x
-
-> **注意**: OpenRewrite 6.4.0 的 `UpgradeSpringBoot_3_3` recipe 会将项目升级到 Spring Boot 3.3.x。如需升级到 3.5.10，请在迁移完成后手动修改 `pom.xml` 中的版本号。
 
 ## 🎯 适用场景
 
@@ -216,17 +214,12 @@ InMemoryUserDetailsManager inMemoryAuthManager() {
 <plugin>
     <groupId>org.openrewrite.maven</groupId>
     <artifactId>rewrite-maven-plugin</artifactId>
-    <version>6.4.0</version>
+    <version>6.28.1</version>
     <dependencies>
         <dependency>
             <groupId>org.openrewrite.recipe</groupId>
             <artifactId>rewrite-spring</artifactId>
-            <version>6.4.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrewrite.recipe</groupId>
-            <artifactId>rewrite-migrate-java</artifactId>
-            <version>2.20.0</version>
+            <version>6.23.1</version>
         </dependency>
     </dependencies>
 </plugin>
@@ -234,8 +227,9 @@ InMemoryUserDetailsManager inMemoryAuthManager() {
 
 **版本说明**：
 - ✅ **已验证组合** - 经过完整测试的稳定版本
-- ✅ **版本对齐** - plugin、spring、migrate-java 版本需配套使用
-- ⚠️ **不建议升级** - 更高版本（如 6.7.0+）存在已知兼容性问题
+- ✅ **支持 Spring Boot 3.5** - 使用 `UpgradeSpringBoot_3_5` recipe
+- ✅ **最新版本** - rewrite-maven-plugin 6.28.1 + rewrite-spring 6.23.1
+- ℹ️ **不再需要 rewrite-migrate-java** - 已内置于 rewrite-spring 中
 
 ## ⚠️ 注意事项
 

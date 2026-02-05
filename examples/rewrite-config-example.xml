@@ -1,11 +1,11 @@
 <plugin>
     <groupId>org.openrewrite.maven</groupId>
     <artifactId>rewrite-maven-plugin</artifactId>
-    <version>6.4.0</version>
+    <version>6.28.1</version>
     <configuration>
         <activeRecipes>
-            <!-- Spring Boot 3.3 upgrade (includes javax->jakarta migration) -->
-            <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3</recipe>
+            <!-- Spring Boot 3.5 upgrade (includes javax->jakarta migration) -->
+            <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5</recipe>
             
             <!-- Optional: JDK 21 migration (default is JDK 17) -->
             <!-- <recipe>org.openrewrite.java.migrate.UpgradeToJava21</recipe> -->
@@ -15,12 +15,7 @@
         <dependency>
             <groupId>org.openrewrite.recipe</groupId>
             <artifactId>rewrite-spring</artifactId>
-            <version>6.4.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrewrite.recipe</groupId>
-            <artifactId>rewrite-migrate-java</artifactId>
-            <version>2.20.0</version>
+            <version>6.23.1</version>
         </dependency>
     </dependencies>
 </plugin>
