@@ -302,7 +302,7 @@ Could not find recipe 'org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3'
 <dependency>
     <groupId>org.openrewrite.recipe</groupId>
     <artifactId>rewrite-spring</artifactId>
-    <version>5.22.0</version> <!-- 确保版本最新 -->
+    <version>6.7.0</version> <!-- 确保版本最新 -->
 </dependency>
 ```
 
