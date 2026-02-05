@@ -1,7 +1,12 @@
 #!/bin/bash
 # get-project-path.sh
 
-read -p "Please enter project path (absolute or relative path): " PROJECT_PATH
+PROJECT_PATH="$1"
+
+# If no argument provided, prompt user
+if [ -z "$PROJECT_PATH" ]; then
+    read -p "Please enter project path (absolute or relative path): " PROJECT_PATH
+fi
 
 # Expand path
 PROJECT_PATH=$(realpath "$PROJECT_PATH" 2>/dev/null)

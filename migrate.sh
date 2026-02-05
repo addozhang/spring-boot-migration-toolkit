@@ -4,6 +4,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_PATH_ARG="$1"
 
 echo "================================================="
 echo "  Spring Boot 2 → 3 + JDK 8 → 21 Migration Tool"
@@ -18,7 +19,7 @@ echo ""
 
 # Step 2
 echo "Step 2/10: Get Project Path"
-bash "$SCRIPT_DIR/scripts/02-get-project-path.sh" || exit 1
+bash "$SCRIPT_DIR/scripts/02-get-project-path.sh" "$PROJECT_PATH_ARG" || exit 1
 echo ""
 
 # Step 3
