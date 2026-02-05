@@ -137,6 +137,75 @@ spring-boot-migration-toolkit/
 - [Spring Boot Migrator](https://github.com/spring-projects-experimental/spring-boot-migrator)
 - [详细研究资料](docs/RESEARCH.md)
 
+## 🧪 测试验证
+
+**测试项目**: [sb2-migration-test](https://github.com/addozhang/sb2-migration-test)
+
+在一个覆盖 11 个迁移类别的综合测试项目中验证：
+- **自动化程度**: 85-90%
+- **测试通过率**: 96% (49/51 非数据库测试)
+- **执行时间**: 1分12秒 (OpenRewrite)
+- **节省时间**: 约 5小时40分钟 (OpenRewrite 估算)
+
+查看完整测试报告：[MIGRATION_REPORT.md](https://github.com/addozhang/sb2-migration-test/blob/spring-boot-3/MIGRATION_REPORT.md)
+
+## ⚠️ 已知问题和手动修复
+
+虽然工具自动化程度很高，但以下 2 个问题需要手动检查：
+
+### 1. Hibernate 方言未更新
+
+**问题**: OpenRewrite 可能不会更新版本特定的 Hibernate 方言。
+
+**检查位置**: `application.properties` 或 `application.yml`
+
+**修复示例**:
+```properties
+# 修复前 (Hibernate 5)
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQL10Dialect
+
+# 修复后 (Hibernate 6)
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+```
+
+Hibernate 6 移除了版本特定的方言（如 PostgreSQL10Dialect、MySQL57Dialect），统一使用通用方言。
+
+### 2. SecurityConfig 用户配置可能不完整
+
+**问题**: OpenRewrite 在转换 `InMemoryUserDetailsManager` 时可能会丢失密码和角色配置。
+
+**检查方法**:
+```bash
+# 自动检测
+grep -A 3 "InMemoryUserDetailsManager" src/main/java/**/SecurityConfig.java | \
+  grep -q ".password(" || echo "⚠️ 警告：SecurityConfig 可能缺少密码配置"
+```
+
+**修复示例**:
+```java
+// ❌ OpenRewrite 可能的输出（不完整）
+@Bean
+InMemoryUserDetailsManager inMemoryAuthManager() {
+    return new InMemoryUserDetailsManager(
+        User.builder().username("admin").build()  // 缺少密码和角色
+    );
+}
+
+// ✅ 正确的配置
+@Bean
+InMemoryUserDetailsManager inMemoryAuthManager() {
+    return new InMemoryUserDetailsManager(
+        User.builder()
+            .username("admin")
+            .password(passwordEncoder().encode("admin"))  // 必须包含
+            .roles("ADMIN", "USER")                       // 必须包含
+            .build()
+    );
+}
+```
+
+详细故障排查指南：[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+
 ## ⚠️ 注意事项
 
 1. **备份项目** - 虽然脚本会创建 Git 备份分支，建议额外备份
