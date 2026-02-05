@@ -13,11 +13,13 @@
 
 ## 📋 迁移内容
 
-- **Spring Boot**: 2.x → 3.5.10
-- **JDK**: 8 → 21
+- **Spring Boot**: 2.x → 3.3 (可手动升级到 3.5.10)
+- **JDK**: 8 → 17 (OpenRewrite 默认) 或 21
 - **Jakarta EE**: javax.* → jakarta.*
 - **Hibernate**: 5.x → 6.x
 - **Spring Framework**: 5.x → 6.x
+
+> **注意**: OpenRewrite 6.4.0 的 `UpgradeSpringBoot_3_3` recipe 会将项目升级到 Spring Boot 3.3.x。如需升级到 3.5.10，请在迁移完成后手动修改 `pom.xml` 中的版本号。
 
 ## 🎯 适用场景
 
