@@ -6,20 +6,20 @@ POM_FILE="$PROJECT_PATH/pom.xml"
 
 echo "=== 项目信息分析 ==="
 
-# 提取 Spring Boot 版本
-SPRING_BOOT_VERSION=$(grep -oP '(?<=<spring-boot.version>)[^<]+' "$POM_FILE" || \
-                      grep -oP '(?<=<version>)[^<]+' "$POM_FILE" | head -n 1)
+# 提取 Spring Boot 版本 (macOS 兼容)
+SPRING_BOOT_VERSION=$(grep '<spring-boot.version>' "$POM_FILE" | sed -E 's/.*<spring-boot.version>([^<]+)<.*/\1/' || \
+                      grep '<version>' "$POM_FILE" | head -n 1 | sed -E 's/.*<version>([^<]+)<.*/\1/')
 echo "Spring Boot 版本: ${SPRING_BOOT_VERSION:-未检测到}"
 
-# 提取 Java 版本
-JAVA_VERSION=$(grep -oP '(?<=<java.version>)[^<]+' "$POM_FILE" || \
-               grep -oP '(?<=<maven.compiler.source>)[^<]+' "$POM_FILE")
+# 提取 Java 版本 (macOS 兼容)
+JAVA_VERSION=$(grep '<java.version>' "$POM_FILE" | sed -E 's/.*<java.version>([^<]+)<.*/\1/' || \
+               grep '<maven.compiler.source>' "$POM_FILE" | sed -E 's/.*<maven.compiler.source>([^<]+)<.*/\1/')
 echo "Java 版本: ${JAVA_VERSION:-未检测到}"
 
 # 检查是否有 parent
 HAS_PARENT=$(grep -c "<parent>" "$POM_FILE")
 if [ "$HAS_PARENT" -gt 0 ]; then
-    PARENT_ARTIFACT=$(grep -A 3 "<parent>" "$POM_FILE" | grep -oP '(?<=<artifactId>)[^<]+' | head -n 1)
+    PARENT_ARTIFACT=$(grep -A 3 "<parent>" "$POM_FILE" | grep '<artifactId>' | head -n 1 | sed -E 's/.*<artifactId>([^<]+)<.*/\1/')
     echo "使用 Parent POM: $PARENT_ARTIFACT"
 fi
 
