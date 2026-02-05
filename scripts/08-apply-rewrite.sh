@@ -4,21 +4,21 @@
 PROJECT_PATH=$(cat .migration-project-path)
 cd "$PROJECT_PATH" || exit 1
 
-echo "=== 应用 OpenRewrite 变更 ==="
+echo "=== Applying OpenRewrite Changes ==="
 
-# 运行 rewrite
+# Run rewrite
 mvn rewrite:run | tee .migration-validation/rewrite-run.txt
 
 REWRITE_STATUS=$?
 
 if [ $REWRITE_STATUS -eq 0 ]; then
-    echo "✅ OpenRewrite 执行成功"
+    echo "✅ OpenRewrite executed successfully"
 else
-    echo "❌ OpenRewrite 执行失败"
+    echo "❌ OpenRewrite execution failed"
     exit 1
 fi
 
-# 显示变更统计
+# Display change statistics
 echo ""
-echo "📊 变更统计:"
+echo "📊 Change statistics:"
 git diff --stat

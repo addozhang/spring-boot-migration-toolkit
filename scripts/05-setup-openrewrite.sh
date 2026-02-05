@@ -4,15 +4,15 @@
 PROJECT_PATH=$(cat .migration-project-path)
 POM_FILE="$PROJECT_PATH/pom.xml"
 
-echo "=== 配置 OpenRewrite ==="
+echo "=== Configuring OpenRewrite ==="
 
-# 检查是否已配置
+# Check if already configured
 if grep -q "rewrite-maven-plugin" "$POM_FILE"; then
-    echo "⚠ OpenRewrite 插件已存在，跳过配置"
+    echo "⚠ OpenRewrite plugin already exists, skipping configuration"
     exit 0
 fi
 
-echo "📝 请手动将以下配置添加到 pom.xml 的 <build><plugins> 中："
+echo "📝 Please manually add the following configuration to <build><plugins> in pom.xml:"
 echo ""
 cat <<'EOF'
             <plugin>
@@ -41,6 +41,6 @@ cat <<'EOF'
             </plugin>
 EOF
 echo ""
-read -p "添加完成后按回车继续..."
+read -p "Press Enter to continue after adding the configuration..."
 
-echo "✅ OpenRewrite 配置完成"
+echo "✅ OpenRewrite configuration completed"

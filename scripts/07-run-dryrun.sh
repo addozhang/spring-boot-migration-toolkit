@@ -4,18 +4,18 @@
 PROJECT_PATH=$(cat .migration-project-path)
 cd "$PROJECT_PATH" || exit 1
 
-echo "=== OpenRewrite Dry Run (预览模式) ==="
+echo "=== OpenRewrite Dry Run (Preview Mode) ==="
 
-# 运行 dry-run
+# Run dry-run
 mvn rewrite:dryRun | tee .migration-validation/rewrite-dryrun.txt
 
 echo ""
-echo "📝 Dry Run 完成，请查看 .migration-validation/rewrite-dryrun.txt"
-echo "预览变更的文件列表已保存"
+echo "📝 Dry Run completed, please check .migration-validation/rewrite-dryrun.txt"
+echo "Preview of changed files has been saved"
 echo ""
-read -p "确认应用这些变更？(y/n): " CONFIRM
+read -p "Confirm applying these changes? (y/n): " CONFIRM
 
 if [ "$CONFIRM" != "y" ]; then
-    echo "❌ 用户取消应用变更"
+    echo "❌ Changes cancelled by user"
     exit 1
 fi

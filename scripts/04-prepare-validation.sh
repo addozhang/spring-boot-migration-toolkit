@@ -4,49 +4,49 @@
 PROJECT_PATH=$(cat .migration-project-path)
 cd "$PROJECT_PATH" || exit 1
 
-echo "=== 准备验证方案 ==="
+echo "=== Preparing Validation ==="
 
-# 创建验证目录
+# Create validation directory
 mkdir -p .migration-validation
 
-# 1. 记录当前依赖树
-echo "📋 记录依赖树..."
+# 1. Record current dependency tree
+echo "📋 Recording dependency tree..."
 mvn dependency:tree > .migration-validation/dependencies-before.txt 2>&1
 
-# 2. 尝试编译（记录结果，不中断）
-echo "🔨 尝试编译..."
+# 2. Attempt compilation (record results, don't interrupt)
+echo "🔨 Attempting compilation..."
 mvn clean compile > .migration-validation/compile-before.txt 2>&1
 COMPILE_STATUS=$?
 if [ $COMPILE_STATUS -eq 0 ]; then
-    echo "✓ 编译成功"
+    echo "✓ Compilation successful"
 else
-    echo "⚠ 编译失败（这是正常的，迁移后会修复）"
+    echo "⚠ Compilation failed (this is normal, will be fixed after migration)"
 fi
 
-# 3. 运行测试（记录结果，不中断）
-echo "🧪 运行测试..."
+# 3. Run tests (record results, don't interrupt)
+echo "🧪 Running tests..."
 mvn test > .migration-validation/test-before.txt 2>&1
 TEST_STATUS=$?
 if [ $TEST_STATUS -eq 0 ]; then
-    echo "✓ 测试通过"
+    echo "✓ Tests passed"
 else
-    echo "⚠ 测试失败"
+    echo "⚠ Tests failed"
 fi
 
-# 4. 创建备份分支
+# 4. Create backup branch
 if [ -d .git ]; then
-    echo "📦 创建备份分支..."
+    echo "📦 Creating backup branch..."
     BACKUP_BRANCH="backup-before-migration-$(date +%Y%m%d-%H%M%S)"
     git checkout -b "$BACKUP_BRANCH"
     git add -A
     git commit -m "Backup before Spring Boot 3 migration" --allow-empty
     git checkout -
-    echo "✓ 备份分支: $BACKUP_BRANCH"
+    echo "✓ Backup branch: $BACKUP_BRANCH"
     echo "BACKUP_BRANCH=$BACKUP_BRANCH" >> .migration-validation/info.txt
 fi
 
-echo "✅ 验证方案准备完成"
+echo "✅ Validation preparation completed"
 echo ""
-echo "迁移前状态:"
-echo "  - 编译: $([ $COMPILE_STATUS -eq 0 ] && echo '✓' || echo '✗')"
-echo "  - 测试: $([ $TEST_STATUS -eq 0 ] && echo '✓' || echo '✗')"
+echo "Pre-migration status:"
+echo "  - Compilation: $([ $COMPILE_STATUS -eq 0 ] && echo '✓' || echo '✗')"
+echo "  - Tests: $([ $TEST_STATUS -eq 0 ] && echo '✓' || echo '✗')"
