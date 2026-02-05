@@ -21,7 +21,7 @@ cat <<'EOF'
                 <version>6.4.0</version>
                 <configuration>
                     <activeRecipes>
-                        <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3</recipe>
+                        <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5</recipe>
                     </activeRecipes>
                 </configuration>
                 <dependencies>

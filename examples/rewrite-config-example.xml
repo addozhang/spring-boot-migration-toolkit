@@ -4,8 +4,8 @@
     <version>6.4.0</version>
     <configuration>
         <activeRecipes>
-            <!-- Spring Boot 3.3 upgrade (includes javax->jakarta migration) -->
-            <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3</recipe>
+            <!-- Spring Boot 3.5 upgrade (includes javax->jakarta migration) -->
+            <recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5</recipe>
             
             <!-- Optional: JDK 21 migration (default is JDK 17) -->
             <!-- <recipe>org.openrewrite.java.migrate.UpgradeToJava21</recipe> -->

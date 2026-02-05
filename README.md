@@ -13,7 +13,7 @@
 
 ## 📋 迁移内容
 
-- **Spring Boot**: 2.x → 3.5.x
+- **Spring Boot**: 2.x → 3.5.10
 - **JDK**: 8 → 21
 - **Jakarta EE**: javax.* → jakarta.*
 - **Hibernate**: 5.x → 6.x
