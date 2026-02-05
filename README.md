@@ -206,6 +206,35 @@ InMemoryUserDetailsManager inMemoryAuthManager() {
 
 详细故障排查指南：[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
+## 🔧 OpenRewrite 版本要求
+
+本工具使用经过验证的 OpenRewrite 版本组合：
+
+```xml
+<plugin>
+    <groupId>org.openrewrite.maven</groupId>
+    <artifactId>rewrite-maven-plugin</artifactId>
+    <version>6.4.0</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.openrewrite.recipe</groupId>
+            <artifactId>rewrite-spring</artifactId>
+            <version>6.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite.recipe</groupId>
+            <artifactId>rewrite-migrate-java</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+    </dependencies>
+</plugin>
+```
+
+**版本说明**：
+- ✅ **已验证组合** - 经过完整测试的稳定版本
+- ✅ **版本对齐** - plugin、spring、migrate-java 版本需配套使用
+- ⚠️ **不建议升级** - 更高版本（如 6.7.0+）存在已知兼容性问题
+
 ## ⚠️ 注意事项
 
 1. **备份项目** - 虽然脚本会创建 Git 备份分支，建议额外备份
