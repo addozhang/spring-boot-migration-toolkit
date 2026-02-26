@@ -1,84 +1,84 @@
-# 研究素材：Spring Boot 2 → 3.5.10 + JDK 8 → 21 升级指南
+# Research Materials: Spring Boot 2 → 3.5.10 + JDK 8 → 21 Upgrade Guide
 
-**创建时间**: 2026-02-04  
-**最后更新**: 2026-02-04  
-**状态**: 收集中  
-**相关博客**: (待写)
+**Created**: 2026-02-04  
+**Last Updated**: 2026-02-04  
+**Status**: Collecting  
+**Related Blog**: (pending)
 
 ---
 
-## 🎯 升级概览
+## 🎯 Upgrade Overview
 
-### 主要变化
+### Key Changes
 - **Spring Boot**: 2.x → 3.5.10
 - **JDK**: 8 → 21
-- **Jakarta EE**: javax.* → jakarta.* (命名空间变更)
+- **Jakarta EE**: javax.* → jakarta.* (namespace change)
 - **Spring Framework**: 5.x → 6.x
-- **最低 JDK 要求**: JDK 17 (Spring Boot 3.0+)
+- **Minimum JDK**: JDK 17 (Spring Boot 3.0+)
 
-### 架构场景
-1. 直接使用 Spring Boot parent pom 的项目
-2. 使用自定义 parent pom 管理版本的项目
-3. 混合使用公司内部 lib 的项目
+### Architecture Scenarios
+1. Projects directly using Spring Boot parent POM
+2. Projects managing versions via a custom parent POM
+3. Projects mixing in internal company libraries
 
 ---
 
-## 🛠️ 自动化迁移工具
+## 🛠️ Automated Migration Tools
 
-### 1. Spring Boot Migrator (SBM) ⭐ 官方推荐
+### 1. Spring Boot Migrator (SBM) ⭐ Officially Recommended
 
-**项目地址**: https://github.com/spring-projects-experimental/spring-boot-migrator
+**Repository**: https://github.com/spring-projects-experimental/spring-boot-migrator
 
-**支持情况**:
-- ✅ Java 项目
-- ✅ Maven 构建
-- ✅ Spring Boot 2.7 → 3.0 自动升级
-- ❌ Kotlin (暂不支持)
-- ❌ Gradle (暂不支持)
+**Support**:
+- ✅ Java projects
+- ✅ Maven builds
+- ✅ Spring Boot 2.7 → 3.0 automated upgrade
+- ❌ Kotlin (not supported)
+- ❌ Gradle (not supported)
 
-**使用方法**:
+**Usage**:
 ```bash
-# 下载最新版本
+# Download latest release
 wget https://github.com/spring-projects-experimental/spring-boot-migrator/releases/latest/download/spring-boot-upgrade.jar
 
-# 运行迁移（需要 JDK 17）
+# Run migration (requires JDK 17)
 java -jar --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
      --add-opens java.base/java.io=ALL-UNNAMED \
      spring-boot-upgrade.jar <path-to-application>
 ```
 
-**功能特点**:
-- 交互式 Web UI
-- 自动化代码重构
-- 基于 OpenRewrite 引擎
-- 提供迁移报告
+**Key Features**:
+- Interactive Web UI
+- Automated code refactoring
+- Powered by the OpenRewrite engine
+- Generates migration reports
 
-**视频演示**: https://www.youtube.com/embed/RKXblzn8lFg (2分26秒)
+**Demo Video**: https://www.youtube.com/embed/RKXblzn8lFg (2 min 26 sec)
 
-**当前状态**: 🚧 官方正在重构改进中
-- 参考: https://github.com/spring-projects-experimental/spring-boot-migrator/discussions/859
+**Current Status**: 🚧 Undergoing official rework and improvements
+- Reference: https://github.com/spring-projects-experimental/spring-boot-migrator/discussions/859
 
 ---
 
-### 2. OpenRewrite ⭐⭐⭐ 强烈推荐
+### 2. OpenRewrite ⭐⭐⭐ Highly Recommended
 
-**官方网站**: https://docs.openrewrite.org  
+**Official Site**: https://docs.openrewrite.org  
 **GitHub**: https://github.com/openrewrite
 
-OpenRewrite 是一个强大的自动化代码重构框架，Spring Boot Migrator 底层也使用它。
+OpenRewrite is a powerful automated code refactoring framework. Spring Boot Migrator also uses it under the hood.
 
-#### 核心项目
+#### Core Projects
 
-| 项目 | Stars | 描述 | GitHub |
-|------|-------|------|--------|
-| rewrite-spring | 369⭐ | Spring 项目迁移 recipes | https://github.com/openrewrite/rewrite-spring |
-| rewrite-maven-plugin | 173⭐ | Maven 插件 | https://github.com/openrewrite/rewrite-maven-plugin |
-| rewrite-migrate-java | 145⭐ | Java 版本迁移 | https://github.com/openrewrite/rewrite-migrate-java |
-| rewrite-testing-frameworks | 90⭐ | 测试框架迁移 | https://github.com/openrewrite/rewrite-testing-frameworks |
+| Project | Stars | Description | GitHub |
+|---------|-------|-------------|--------|
+| rewrite-spring | 369⭐ | Spring project migration recipes | https://github.com/openrewrite/rewrite-spring |
+| rewrite-maven-plugin | 173⭐ | Maven plugin | https://github.com/openrewrite/rewrite-maven-plugin |
+| rewrite-migrate-java | 145⭐ | Java version migration | https://github.com/openrewrite/rewrite-migrate-java |
+| rewrite-testing-frameworks | 90⭐ | Test framework migration | https://github.com/openrewrite/rewrite-testing-frameworks |
 
-#### Maven 使用方式
+#### Maven Usage
 
-在项目 `pom.xml` 中添加插件:
+Add the plugin to your project's `pom.xml`:
 
 ```xml
 <build>
@@ -110,71 +110,71 @@ OpenRewrite 是一个强大的自动化代码重构框架，Spring Boot Migrator
 </build>
 ```
 
-运行迁移:
+Run migration:
 ```bash
-# 检查可应用的 recipes
+# Discover applicable recipes
 mvn rewrite:discover
 
-# 运行迁移（试运行）
+# Dry-run (preview only)
 mvn rewrite:dryRun
 
-# 应用迁移
+# Apply migration
 mvn rewrite:run
 ```
 
-#### 关键 Recipes
+#### Key Recipes
 
-**Spring Boot 3 升级**:
+**Spring Boot 3 Upgrade**:
 - `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0`
 - `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1`
 - `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2`
 - `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3`
 
-**JDK 升级**:
+**JDK Upgrade**:
 - `org.openrewrite.java.migrate.UpgradeToJava17`
 - `org.openrewrite.java.migrate.UpgradeToJava21`
 
-**Jakarta EE 迁移**:
+**Jakarta EE Migration**:
 - `org.openrewrite.java.migrate.jakarta.JavaxToJakarta`
 
-#### 优势
-- ✅ 语法树级别的精确重构
-- ✅ 支持 Maven 和 Gradle
-- ✅ 可自定义 recipes
-- ✅ 社区活跃，recipes 持续更新
-- ✅ 可组合多个 recipes
+#### Advantages
+- ✅ Precise refactoring at the syntax tree level
+- ✅ Supports Maven and Gradle
+- ✅ Customizable recipes
+- ✅ Active community with continuously updated recipes
+- ✅ Recipes are composable
 
-**参考项目**:
-- 示例: https://github.com/dashaun/openrewrite-spring-boot-upgrade-example (12⭐)
+**Reference Project**:
+- Example: https://github.com/dashaun/openrewrite-spring-boot-upgrade-example (12⭐)
 
 ---
 
-### 3. Jakarta EE 迁移工具
+### 3. Jakarta EE Migration Tools
 
 #### Apache Tomcat Jakarta Migration Tool
 
 **GitHub**: https://github.com/apache/tomcat-jakartaee-migration (181⭐)
 
-**用途**: 专门处理 javax.* → jakarta.* 命名空间迁移
+**Purpose**: Handles javax.* → jakarta.* namespace migration
 
 ```bash
-# 转换 JAR/WAR 文件
+# Convert JAR/WAR files
 java -jar jakartaee-migration-1.0.x-shaded.jar <source> <destination>
 
-# 转换源代码目录
+# Convert source code directory
 java -jar jakartaee-migration-1.0.x-shaded.jar <source-dir> <dest-dir> --source
 ```
 
-**适用场景**:
-- 处理无法自动迁移的第三方依赖
-- 转换已编译的 JAR/WAR 包
-- 批量转换源代码
+**Use Cases**:
+- Handle third-party dependencies that cannot be automatically migrated
+- Convert compiled JAR/WAR archives
+- Batch-convert source code directories
 
 #### Gradle Jakarta Migration Plugin
 
 **GitHub**: https://github.com/nebula-plugins/gradle-jakartaee-migration-plugin (53⭐)
 
-**用途**: Gradle 项目的 Jakarta EE 迁移
+**Purpose**: Jakarta EE migration for Gradle projects
 
 ```groovy
 plugins {
@@ -184,20 +184,20 @@ plugins {
 
 ---
 
-## 🤖 AI 辅助工具
+## 🤖 AI-Assisted Tools
 
 ### 1. Spring Boot 3 Migration Analyzer
 
 **GitHub**: https://github.com/nilabja-banerjee/estimation_calculator
 
-**描述**: AI 驱动的代码分析和工作量评估工具
+**Description**: AI-driven code analysis and effort estimation tool
 
-**功能**:
-- 扫描项目代码
-- 评估迁移工作量
-- 生成迁移报告
+**Features**:
+- Scans project source code
+- Estimates migration effort
+- Generates migration reports
 
-**更新时间**: 2026-01-31
+**Last Updated**: 2026-01-31
 
 ---
 
@@ -205,48 +205,48 @@ plugins {
 
 **GitHub**: https://github.com/adrianmikula/JakartaMigrationMCP (1⭐)
 
-**更新时间**: 2026-02-04（非常新！）
+**Last Updated**: 2026-02-04 (very new!)
 
-**描述**: MCP (Model Context Protocol) 服务器，可能用于 AI 辅助迁移
+**Description**: MCP (Model Context Protocol) server for AI-assisted migration
 
-**注**: 项目较新，需进一步评估稳定性
+**Note**: Project is new; stability needs further evaluation
 
 ---
 
-## ⚠️ 关键迁移注意事项
+## ⚠️ Critical Migration Considerations
 
-### 1. JDK 升级相关
+### 1. JDK Upgrade
 
-#### JDK 8 → 21 主要变化
+#### JDK 8 → 21 Major Changes
 
-**新特性**:
-- ✨ Virtual Threads (虚拟线程) - JDK 21 正式版
-- ✨ Record 类型 - JDK 16
-- ✨ Sealed 类 - JDK 17
-- ✨ Pattern Matching - JDK 21 增强
-- ✨ Switch 表达式 - JDK 14
+**New Features**:
+- ✨ Virtual Threads — JDK 21 GA
+- ✨ Records — JDK 16
+- ✨ Sealed Classes — JDK 17
+- ✨ Pattern Matching enhancements — JDK 21
+- ✨ Switch Expressions — JDK 14
 
-**移除的特性**:
-- ❌ Nashorn JavaScript 引擎 (JDK 11 废弃，15 移除)
-- ❌ 部分过时的 SecurityManager API
+**Removed Features**:
+- ❌ Nashorn JavaScript engine (deprecated JDK 11, removed JDK 15)
+- ❌ Some legacy SecurityManager APIs
 - ❌ RMI Activation (JDK 17)
 
-**参考问题**:
-- Stack Overflow: "What exactly makes Java Virtual Threads better" (45票)
+**Reference**:
+- Stack Overflow: "What exactly makes Java Virtual Threads better" (45 votes)
   - https://stackoverflow.com/questions/72116652/what-exactly-makes-java-virtual-threads-better
 
-**建议**:
-1. 先升级到 JDK 17（Spring Boot 3 最低要求）
-2. 测试通过后再升级到 JDK 21
-3. 利用 OpenRewrite 自动处理语法升级
+**Recommendations**:
+1. Upgrade to JDK 17 first (minimum for Spring Boot 3)
+2. After tests pass, upgrade to JDK 21
+3. Use OpenRewrite to automatically handle syntax upgrades
 
 ---
 
-### 2. Jakarta EE 命名空间变更
+### 2. Jakarta EE Namespace Change
 
-**核心变化**: `javax.*` → `jakarta.*`
+**Core Change**: `javax.*` → `jakarta.*`
 
-影响的包:
+Affected packages:
 ```
 javax.servlet.*      → jakarta.servlet.*
 javax.persistence.*  → jakarta.persistence.*
@@ -257,40 +257,40 @@ javax.xml.bind.*     → jakarta.xml.bind.*
 javax.annotation.*   → jakarta.annotation.*
 ```
 
-**常见问题**:
+**Common Issues**:
 
-1. **第三方库不兼容**
-   - 问题: 依赖库仍使用 javax.* 包
-   - 解决: 使用 Jakarta Migration Tool 转换 JAR 包
+1. **Third-party library incompatibility**
+   - Problem: Dependency library still uses javax.* packages
+   - Solution: Use the Jakarta Migration Tool to convert JAR files
 
 2. **SOAP Web Services**
-   - SO: "Spring Boot 3 Update: No qualifying bean of type 'jakarta.xml.ws.WebServiceContext'" (5票)
+   - SO: "Spring Boot 3 Update: No qualifying bean of type 'jakarta.xml.ws.WebServiceContext'" (5 votes)
    - https://stackoverflow.com/questions/75928808/spring-boot-3-update-no-qualifying-bean-of-type-jakarta-xml-ws-webserviceconte
    
-3. **邮件配置迁移**
-   - SO: "Javax mail configuration migration to jakarta mail" (2票)
+3. **Mail configuration migration**
+   - SO: "Javax mail configuration migration to jakarta mail" (2 votes)
    - https://stackoverflow.com/questions/74566373/javax-mail-configuration-migration-to-jakarta-mail
 
 ---
 
-### 3. Hibernate 6 变化
+### 3. Hibernate 6 Changes
 
-Spring Boot 3 使用 Hibernate 6，有重大变化:
+Spring Boot 3 uses Hibernate 6, which includes significant breaking changes:
 
-**Dialect 配置变更**:
-- SO: "What happened to PostgreSQL10Dialect in Hibernate 6.x?" (22票)
+**Dialect Configuration Changes**:
+- SO: "What happened to PostgreSQL10Dialect in Hibernate 6.x?" (22 votes)
   - https://stackoverflow.com/questions/74744188/what-happened-to-postgresql10dialect-in-hibernate-6-x
-  - 解决: 使用通用 Dialect，Hibernate 6 会自动检测数据库版本
+  - Solution: Use the generic Dialect — Hibernate 6 auto-detects the database version
 
-**JPA Repository 方法变更**:
-- SO: "The method findById is undefined for the type after migrating to Boot 3" (13票)
+**JPA Repository Method Changes**:
+- SO: "The method findById is undefined for the type after migrating to Boot 3" (13 votes)
   - https://stackoverflow.com/questions/74900974/the-method-findbyid-is-undefined-for-the-type-after-migrating-to-boot-3
 
 ---
 
-### 4. Spring Boot 配置变更
+### 4. Spring Boot Configuration Changes
 
-**属性重命名**:
+**Renamed Properties**:
 ```properties
 # Spring Boot 2.x
 server.max-http-header-size=16KB
@@ -299,40 +299,40 @@ server.max-http-header-size=16KB
 server.max-http-request-header-size=16KB
 ```
 
-- SO: "how to set maxHttpHeaderSize in spring-boot 3.x" (12票)
+- SO: "how to set maxHttpHeaderSize in spring-boot 3.x" (12 votes)
   - https://stackoverflow.com/questions/75460562/how-to-set-maxhttpheadersize-in-spring-boot-3-x
 
-**自动配置变更**:
-- 部分自动配置类路径变更
-- 需要显式添加某些 starter 依赖
+**Auto-configuration Changes**:
+- Some auto-configuration class paths have changed
+- Certain starter dependencies may need to be added explicitly
 
 ---
 
-### 5. 测试框架调整
+### 5. Test Framework Adjustments
 
-**Spring Boot Test 变化**:
-- SO: "Does @WebMvcTest require @SpringBootApplication annotation?" (13票)
+**Spring Boot Test Changes**:
+- SO: "Does @WebMvcTest require @SpringBootApplication annotation?" (13 votes)
   - https://stackoverflow.com/questions/38890944/does-webmvctest-require-springbootapplication-annotation
 
-**建议使用 OpenRewrite**:
-- `rewrite-testing-frameworks` recipes 自动处理测试代码迁移
+**Recommendation**:
+- Use `rewrite-testing-frameworks` recipes to automatically handle test code migration
 
 ---
 
-### 6. 自定义 Parent POM 策略
+### 6. Custom Parent POM Strategy
 
-对于使用自定义 parent pom 的项目:
+For projects using a custom parent POM:
 
-**选项 1: 更新 Parent POM**
+**Option 1: Update the Parent POM**
 ```xml
 <parent>
     <groupId>com.company</groupId>
     <artifactId>company-parent</artifactId>
-    <version>2.0.0</version> <!-- 新版本，基于 Spring Boot 3 -->
+    <version>2.0.0</version> <!-- new version based on Spring Boot 3 -->
 </parent>
 ```
 
-**选项 2: 使用 BOM (Bill of Materials)**
+**Option 2: Use BOM (Bill of Materials)**
 ```xml
 <dependencyManagement>
     <dependencies>
@@ -343,7 +343,7 @@ server.max-http-request-header-size=16KB
             <type>pom</type>
             <scope>import</scope>
         </dependency>
-        <!-- 公司内部依赖 BOM -->
+        <!-- Internal company dependency BOM -->
         <dependency>
             <groupId>com.company</groupId>
             <artifactId>company-dependencies</artifactId>
@@ -355,157 +355,157 @@ server.max-http-request-header-size=16KB
 </dependencyManagement>
 ```
 
-**优势**:
-- 解耦 Spring Boot 版本和公司内部依赖
-- 更灵活的版本管理
-- 减少 parent pom 冲突
+**Advantages**:
+- Decouples Spring Boot version from internal dependencies
+- More flexible version management
+- Reduces parent POM conflicts
 
 ---
 
-### 7. 公司内部 Lib 兼容性
+### 7. Internal Library Compatibility
 
-**检查清单**:
+**Checklist**:
 
-1. ✅ 内部 lib 是否支持 JDK 17+
-2. ✅ 是否使用 javax.* 包（需要迁移）
-3. ✅ 是否依赖 Spring Boot 2 特定 API
-4. ✅ 是否有自定义自动配置（需要适配 Spring Boot 3）
+1. ✅ Does the internal lib support JDK 17+?
+2. ✅ Does it use javax.* packages (migration required)?
+3. ✅ Does it depend on Spring Boot 2-specific APIs?
+4. ✅ Does it have custom auto-configuration (needs updating for Spring Boot 3)?
 
-**迁移策略**:
-- 先发布内部 lib 的 Jakarta 兼容版本
-- 使用语义化版本号（如 2.0.0 → 3.0.0）
-- 提供过渡期的双版本支持
+**Migration Strategy**:
+- Publish a Jakarta-compatible version of internal libs first
+- Use semantic versioning (e.g., 2.0.0 → 3.0.0)
+- Provide dual-version support during the transition period
 
 ---
 
-### 8. 数据库驱动和连接池
+### 8. Database Drivers and Connection Pools
 
-**驱动版本要求**:
+**Driver Version Requirements**:
 - PostgreSQL: 42.5.1+
 - MySQL: 8.0.31+
 - Oracle: 21.x+
 
 **HikariCP**:
-- Spring Boot 3 默认使用 HikariCP 5.x
-- 配置属性可能有变化
+- Spring Boot 3 defaults to HikariCP 5.x
+- Some configuration properties may have changed
 
 ---
 
-### 9. 监控和日志
+### 9. Monitoring and Logging
 
 **Micrometer Tracing**:
-- Spring Boot 3 引入新的追踪抽象
-- SO: "Spring Boot 3 TaskExecutor context propagation in micrometer tracing" (14票)
+- Spring Boot 3 introduces a new tracing abstraction
+- SO: "Spring Boot 3 TaskExecutor context propagation in micrometer tracing" (14 votes)
   - https://stackoverflow.com/questions/75401265/spring-boot-3-taskexecutor-context-propagation-in-micrometer-tracing
 
-**日志框架**:
-- 确保 Log4j2/Logback 版本兼容 JDK 21
-- 检查自定义 Appender 实现
+**Logging Frameworks**:
+- Ensure Log4j2/Logback versions are compatible with JDK 21
+- Review any custom Appender implementations
 
 ---
 
-## 📝 推荐升级流程
+## 📝 Recommended Upgrade Process
 
-### 阶段 1: 准备阶段 (1-2周)
+### Phase 1: Preparation (1–2 weeks)
 
-1. **环境准备**
-   - 安装 JDK 17 和 JDK 21
-   - 准备独立的迁移分支
-   - 设置 CI/CD 测试环境
+1. **Environment setup**
+   - Install JDK 17 and JDK 21
+   - Create a dedicated migration branch
+   - Set up a CI/CD test environment
 
-2. **依赖清单**
-   - 列出所有直接依赖
-   - 检查第三方库的 Spring Boot 3 兼容性
-   - 评估公司内部 lib 兼容性
+2. **Dependency audit**
+   - List all direct dependencies
+   - Check third-party library Spring Boot 3 compatibility
+   - Assess internal library compatibility
 
-3. **工具准备**
-   - 下载 Spring Boot Migrator
-   - 配置 OpenRewrite Maven 插件
-   - 准备 Jakarta Migration Tool
+3. **Tool preparation**
+   - Download Spring Boot Migrator
+   - Configure the OpenRewrite Maven plugin
+   - Prepare the Jakarta Migration Tool
 
-### 阶段 2: 自动迁移 (1周)
+### Phase 2: Automated Migration (1 week)
 
-1. **运行 OpenRewrite**
+1. **Run OpenRewrite**
    ```bash
    mvn rewrite:run -DactiveRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
    ```
 
-2. **处理编译错误**
-   - 修复自动迁移未覆盖的代码
-   - 处理 API 变更
+2. **Resolve compilation errors**
+   - Fix code changes not covered by automatic migration
+   - Handle API changes
 
-3. **更新依赖版本**
-   - 升级所有依赖到兼容版本
-   - 处理依赖冲突
+3. **Update dependency versions**
+   - Upgrade all dependencies to compatible versions
+   - Resolve dependency conflicts
 
-### 阶段 3: 测试验证 (2-3周)
+### Phase 3: Testing and Validation (2–3 weeks)
 
-1. **单元测试**
-   - 运行所有单元测试
-   - 修复测试失败
+1. **Unit tests**
+   - Run all unit tests
+   - Fix test failures
 
-2. **集成测试**
-   - 验证数据库集成
-   - 验证外部服务调用
-   - 验证缓存、消息队列等
+2. **Integration tests**
+   - Validate database integration
+   - Validate external service calls
+   - Validate caches, message queues, etc.
 
-3. **性能测试**
-   - 对比迁移前后性能
-   - 利用 Virtual Threads 优化（可选）
+3. **Performance tests**
+   - Compare performance before and after migration
+   - Optionally optimize using Virtual Threads
 
-4. **兼容性测试**
-   - 验证与其他服务的兼容性
-   - 验证 API 接口不变
+4. **Compatibility tests**
+   - Verify compatibility with other services
+   - Verify API contracts are preserved
 
-### 阶段 4: 灰度发布 (1-2周)
+### Phase 4: Canary Release (1–2 weeks)
 
-1. 小流量灰度
-2. 监控关键指标
-3. 逐步扩大流量
-4. 全量发布
-
----
-
-## 🔗 官方文档资源
-
-### Spring Boot 官方
-
-- **Spring Boot 3.0 发布说明**: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes
-- **Spring Boot 3.5 文档**: https://docs.spring.io/spring-boot/index.html
-- **迁移指南**: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide
-
-### OpenRewrite 官方
-
-- **文档**: https://docs.openrewrite.org
-- **Recipes 目录**: https://docs.openrewrite.org/recipes
-- **Maven 插件**: https://docs.openrewrite.org/reference/rewrite-maven-plugin
-
-### Jakarta EE 官方
-
-- **Jakarta EE 规范**: https://jakarta.ee/specifications/
-- **命名空间迁移指南**: https://blogs.oracle.com/javamagazine/post/transition-from-java-ee-to-jakarta-ee
+1. Small-traffic canary rollout
+2. Monitor key metrics
+3. Gradually increase traffic
+4. Full rollout
 
 ---
 
-## 📊 素材统计
+## 🔗 Official Documentation
 
-- 官方工具: 3 个 (SBM, OpenRewrite, Jakarta Migration)
-- AI 工具: 2 个
-- GitHub 仓库: 15+ 个
-- Stack Overflow 问题: 20+ 个
-- 核心注意事项: 9 大类
+### Spring Boot Official
+
+- **Spring Boot 3.0 Release Notes**: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Release-Notes
+- **Spring Boot 3.5 Docs**: https://docs.spring.io/spring-boot/index.html
+- **Migration Guide**: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide
+
+### OpenRewrite Official
+
+- **Documentation**: https://docs.openrewrite.org
+- **Recipe Catalog**: https://docs.openrewrite.org/recipes
+- **Maven Plugin**: https://docs.openrewrite.org/reference/rewrite-maven-plugin
+
+### Jakarta EE Official
+
+- **Jakarta EE Specifications**: https://jakarta.ee/specifications/
+- **Namespace Migration Guide**: https://blogs.oracle.com/javamagazine/post/transition-from-java-ee-to-jakarta-ee
 
 ---
 
-## 🎯 后续待补充
+## 📊 Material Summary
 
-- [ ] Spring Boot 3.1 - 3.5 各版本的新特性和变化
-- [ ] Virtual Threads 实战应用案例
-- [ ] 性能对比数据（Spring Boot 2 vs 3）
-- [ ] 实际企业迁移案例研究
-- [ ] 常见坑点和解决方案汇总
-- [ ] 自定义 OpenRewrite recipes 编写指南
+- Official tools: 3 (SBM, OpenRewrite, Jakarta Migration)
+- AI tools: 2
+- GitHub repositories: 15+
+- Stack Overflow questions: 20+
+- Key consideration categories: 9
 
 ---
 
-**最后更新**: 2026-02-04 23:00 UTC
+## 🎯 Pending Additions
+
+- [ ] New features and changes in Spring Boot 3.1–3.5
+- [ ] Virtual Threads real-world usage examples
+- [ ] Performance comparison data (Spring Boot 2 vs 3)
+- [ ] Real-world enterprise migration case studies
+- [ ] Common gotchas and solutions summary
+- [ ] Guide to writing custom OpenRewrite recipes
+
+---
+
+**Last Updated**: 2026-02-04 23:00 UTC

@@ -1,37 +1,37 @@
-# 故障排查指南
+# Troubleshooting Guide
 
-## 常见问题及解决方案
+## Common Issues and Solutions
 
-### 1. 环境问题
+### 1. Environment Issues
 
-#### 问题：JDK 版本不满足要求
+#### Issue: JDK version requirement not met
 
-**错误信息**:
+**Error message**:
 ```
-❌ OpenRewrite 需要 JDK 17+，当前版本不满足
+❌ OpenRewrite requires JDK 17+, current version does not meet the requirement
 ```
 
-**解决方案**:
+**Solution**:
 ```bash
 # Ubuntu/Debian
 sudo apt install openjdk-21-jdk
 
-# macOS (使用 Homebrew)
+# macOS (using Homebrew)
 brew install openjdk@21
 
-# 设置 JAVA_HOME
+# Set JAVA_HOME
 export JAVA_HOME=/path/to/jdk-21
 export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-#### 问题：Maven 未安装
+#### Issue: Maven not installed
 
-**错误信息**:
+**Error message**:
 ```
-❌ 未检测到 Maven，请安装 Maven 3.8.1+
+❌ Maven not detected, please install Maven 3.8.1+
 ```
 
-**解决方案**:
+**Solution**:
 ```bash
 # Ubuntu/Debian
 sudo apt install maven
@@ -39,30 +39,30 @@ sudo apt install maven
 # macOS
 brew install maven
 
-# 验证安装
+# Verify installation
 mvn -v
 ```
 
 ---
 
-### 2. 编译错误
+### 2. Compilation Errors
 
-#### 问题：javax.* 包未迁移
+#### Issue: javax.* packages not migrated
 
-**错误信息**:
+**Error message**:
 ```
 error: package javax.servlet does not exist
 ```
 
-**原因**: 第三方依赖仍使用 javax.* 包
+**Cause**: Third-party dependencies still use javax.* packages
 
-**解决方案**:
-1. 检查依赖是否有 Jakarta EE 兼容版本
-2. 使用 Apache Tomcat Jakarta Migration Tool 转换 JAR 包
-3. 手动更新依赖版本
+**Solution**:
+1. Check if the dependency has a Jakarta EE compatible version
+2. Use the Apache Tomcat Jakarta Migration Tool to convert JAR files
+3. Manually update the dependency version
 
 ```xml
-<!-- 示例：更新 javax.servlet 到 jakarta.servlet -->
+<!-- Example: update javax.servlet to jakarta.servlet -->
 <dependency>
     <groupId>jakarta.servlet</groupId>
     <artifactId>jakarta.servlet-api</artifactId>
@@ -70,38 +70,38 @@ error: package javax.servlet does not exist
 </dependency>
 ```
 
-#### 问题：Hibernate Dialect 不存在
+#### Issue: Hibernate Dialect not found
 
-**错误信息**:
+**Error message**:
 ```
 error: cannot find symbol PostgreSQL10Dialect
 ```
 
-**原因**: Hibernate 6 移除了版本特定的 Dialect
+**Cause**: Hibernate 6 removed version-specific Dialects
 
-**解决方案**:
+**Solution**:
 
-在 `application.properties` 中:
+In `application.properties`:
 ```properties
-# 旧配置 (Hibernate 5)
+# Old configuration (Hibernate 5)
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQL10Dialect
 
-# 新配置 (Hibernate 6)
+# New configuration (Hibernate 6)
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 ```
 
-或者完全移除该配置，让 Hibernate 自动检测。
+Or remove the property entirely and let Hibernate auto-detect the database version.
 
-#### 问题：配置属性不存在
+#### Issue: Configuration property does not exist
 
-**错误信息**:
+**Error message**:
 ```
 Unknown property 'server.max-http-header-size'
 ```
 
-**原因**: Spring Boot 3 中属性名称变更
+**Cause**: Property names changed in Spring Boot 3
 
-**解决方案**:
+**Solution**:
 
 ```properties
 # Spring Boot 2.x
@@ -111,19 +111,19 @@ server.max-http-header-size=16KB
 server.max-http-request-header-size=16KB
 ```
 
-参考: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Configuration-Changelog
+Reference: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Configuration-Changelog
 
-#### 问题：SecurityConfig 用户配置不完整（OpenRewrite 已知问题）
+#### Issue: SecurityConfig user configuration incomplete (known OpenRewrite issue)
 
-**错误信息**:
+**Error message**:
 ```
 java.lang.IllegalArgumentException: Cannot pass null or empty values to constructor
     at org.springframework.security.core.userdetails.User.<init>
 ```
 
-**原因**: OpenRewrite 在转换 `AuthenticationManagerBuilder` 到 `InMemoryUserDetailsManager` 时，可能会丢失密码和角色配置。
+**Cause**: OpenRewrite may drop password and role configuration when converting `AuthenticationManagerBuilder` to `InMemoryUserDetailsManager`.
 
-**迁移前代码** (Spring Boot 2):
+**Before migration** (Spring Boot 2):
 ```java
 @Override
 protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -138,17 +138,17 @@ protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 }
 ```
 
-**OpenRewrite 错误输出** (Spring Boot 3):
+**OpenRewrite incorrect output** (Spring Boot 3):
 ```java
 @Bean
 InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
     return new InMemoryUserDetailsManager(
-        User.builder().username("admin").build()  // ❌ 缺少密码和角色
+        User.builder().username("admin").build()  // ❌ missing password and roles
     );
 }
 ```
 
-**正确的修复**:
+**Correct fix**:
 ```java
 @Bean
 InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
@@ -167,38 +167,38 @@ InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
 }
 ```
 
-**检查方法**:
-迁移后，搜索 `SecurityConfig.java` 中的 `InMemoryUserDetailsManager`，确保每个用户都包含：
+**How to check**:
+After migration, search for `InMemoryUserDetailsManager` in `SecurityConfig.java` and ensure every user includes:
 - `.username()`
-- `.password()` ⚠️ 必须检查
-- `.roles()` 或 `.authorities()` ⚠️ 必须检查
+- `.password()` ⚠️ must verify
+- `.roles()` or `.authorities()` ⚠️ must verify
 
-**自动化检查脚本**:
+**Automated check script**:
 ```bash
-# 检查 SecurityConfig 是否缺少密码配置
+# Check if SecurityConfig is missing password configuration
 grep -A 3 "InMemoryUserDetailsManager" src/main/java/**/SecurityConfig.java | \
-  grep -q ".password(" || echo "⚠️ 警告：SecurityConfig 可能缺少密码配置"
+  grep -q ".password(" || echo "⚠️ Warning: SecurityConfig may be missing password configuration"
 ```
 
 ---
 
-### 3. 依赖冲突
+### 3. Dependency Conflicts
 
-#### 问题：多个版本的同一依赖
+#### Issue: Multiple versions of the same dependency
 
-**错误信息**:
+**Error message**:
 ```
 Dependency convergence error for ...
 ```
 
-**解决方案**:
+**Solution**:
 
-1. 查看依赖树:
+1. View the dependency tree:
 ```bash
 mvn dependency:tree
 ```
 
-2. 排除冲突的传递依赖:
+2. Exclude conflicting transitive dependencies:
 ```xml
 <dependency>
     <groupId>com.example</groupId>
@@ -213,7 +213,7 @@ mvn dependency:tree
 </dependency>
 ```
 
-3. 使用 `dependencyManagement` 统一版本:
+3. Use `dependencyManagement` to enforce a consistent version:
 ```xml
 <dependencyManagement>
     <dependencies>
@@ -228,18 +228,18 @@ mvn dependency:tree
 
 ---
 
-### 4. 测试失败
+### 4. Test Failures
 
-#### 问题：@WebMvcTest 相关测试失败
+#### Issue: @WebMvcTest tests fail
 
-**错误信息**:
+**Error message**:
 ```
 Unable to find a @SpringBootConfiguration
 ```
 
-**解决方案**:
+**Solution**:
 
-确保测试类能找到 `@SpringBootApplication` 类:
+Make sure the test class can locate the `@SpringBootApplication` class:
 
 ```java
 @WebMvcTest(MyController.class)
@@ -249,88 +249,87 @@ public class MyControllerTest {
 }
 ```
 
-#### 问题：JPA Repository 方法不存在
+#### Issue: JPA Repository method not found
 
-**错误信息**:
+**Error message**:
 ```
 The method findById(Long) is undefined for the type MyRepository
 ```
 
-**原因**: Hibernate 6 / JPA 3.1 API 变更
+**Cause**: Hibernate 6 / JPA 3.1 API changes
 
-**解决方案**:
+**Solution**:
 
-检查方法签名是否正确:
+Verify the method signature returns the correct type:
 ```java
-// 确保返回 Optional<T>
+// Ensure it returns Optional<T>
 Optional<MyEntity> findById(Long id);
 ```
 
 ---
 
-### 5. OpenRewrite 执行问题
+### 5. OpenRewrite Execution Issues
 
-#### 问题：OpenRewrite 插件未生效
+#### Issue: OpenRewrite plugin not taking effect
 
-**症状**: `mvn rewrite:discover` 报错
+**Symptom**: `mvn rewrite:discover` throws an error
 
-**解决方案**:
+**Solution**:
 
-1. 确认插件配置正确:
+1. Confirm plugin configuration is correct:
 ```bash
 mvn help:effective-pom | grep rewrite
 ```
 
-2. 清理 Maven 缓存:
+2. Clear the Maven cache:
 ```bash
 mvn clean
 rm -rf ~/.m2/repository/org/openrewrite
 mvn rewrite:discover
 ```
 
-#### 问题：Recipe 未找到
+#### Issue: Recipe not found
 
-**错误信息**:
+**Error message**:
 ```
 Could not find recipe 'org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3'
 ```
 
-**解决方案**:
+**Solution**:
 
-检查依赖版本是否匹配:
+Verify that the dependency version matches:
 ```xml
 <dependency>
     <groupId>org.openrewrite.recipe</groupId>
     <artifactId>rewrite-spring</artifactId>
-    <version>6.7.0</version> <!-- 确保版本最新 -->
+    <version>6.7.0</version> <!-- ensure this is up to date -->
 </dependency>
 ```
 
-更新到最新版本:
+List available recipes:
 ```bash
-# 查看可用 recipes
 mvn rewrite:discover
 ```
 
 ---
 
-### 6. 自定义 Parent POM 问题
+### 6. Custom Parent POM Issues
 
-#### 问题：Parent POM 冲突
+#### Issue: Parent POM conflict
 
-**症状**: Spring Boot 版本无法升级
+**Symptom**: Spring Boot version cannot be upgraded
 
-**解决方案 1**: 更新 Parent POM
+**Solution 1**: Update the Parent POM
 
-如果公司有维护的 Parent POM，请先升级它到支持 Spring Boot 3。
+If your organization maintains a custom parent POM, upgrade it to one that supports Spring Boot 3 first.
 
-**解决方案 2**: 使用 BOM 替代
+**Solution 2**: Replace with BOM import
 
 ```xml
-<!-- 移除 parent -->
+<!-- Remove parent -->
 <!-- <parent>...</parent> -->
 
-<!-- 使用 dependencyManagement 导入 BOM -->
+<!-- Use dependencyManagement to import the BOM -->
 <dependencyManagement>
     <dependencies>
         <dependency>
@@ -340,7 +339,7 @@ mvn rewrite:discover
             <type>pom</type>
             <scope>import</scope>
         </dependency>
-        <!-- 公司内部依赖 BOM -->
+        <!-- Internal company dependency BOM -->
         <dependency>
             <groupId>com.company</groupId>
             <artifactId>company-dependencies</artifactId>
@@ -351,7 +350,7 @@ mvn rewrite:discover
     </dependencies>
 </dependencyManagement>
 
-<!-- 需要手动添加之前 parent 提供的插件 -->
+<!-- Manually add plugins previously provided by the parent -->
 <build>
     <plugins>
         <plugin>
@@ -364,18 +363,18 @@ mvn rewrite:discover
 
 ---
 
-### 7. 数据库相关问题
+### 7. Database-Related Issues
 
-#### 问题：驱动版本不兼容
+#### Issue: Driver version incompatibility
 
-**错误信息**:
+**Error message**:
 ```
 java.sql.SQLException: No suitable driver found
 ```
 
-**解决方案**:
+**Solution**:
 
-更新数据库驱动到兼容版本:
+Update database drivers to compatible versions:
 
 ```xml
 <!-- PostgreSQL -->
@@ -393,11 +392,11 @@ java.sql.SQLException: No suitable driver found
 </dependency>
 ```
 
-#### 问题：Flyway 迁移失败
+#### Issue: Flyway migration failure
 
-**原因**: Flyway 版本需要升级以支持 Spring Boot 3
+**Cause**: Flyway version needs to be upgraded for Spring Boot 3 compatibility
 
-**解决方案**:
+**Solution**:
 
 ```xml
 <dependency>
@@ -409,73 +408,73 @@ java.sql.SQLException: No suitable driver found
 
 ---
 
-### 8. 性能问题
+### 8. Performance Issues
 
-#### 问题：启动时间变长
+#### Issue: Longer startup time
 
-**原因**: Spring Boot 3 + Hibernate 6 初始化逻辑变化
+**Cause**: Changes in Spring Boot 3 + Hibernate 6 initialization logic
 
-**优化建议**:
+**Optimization tips**:
 
-1. 启用虚拟线程 (JDK 21):
+1. Enable virtual threads (JDK 21):
 ```properties
 spring.threads.virtual.enabled=true
 ```
 
-2. 调整 Hibernate 配置:
+2. Tune Hibernate configuration:
 ```properties
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.open-in-view=false
 ```
 
-3. 优化组件扫描:
+3. Narrow component scan scope:
 ```java
 @SpringBootApplication(scanBasePackages = "com.example.specific")
 ```
 
 ---
 
-## 调试技巧
+## Debugging Tips
 
-### 查看详细日志
+### View Detailed Logs
 
 ```bash
-# OpenRewrite 详细日志
+# OpenRewrite verbose logs
 mvn rewrite:run -X
 
-# 查看依赖冲突
+# Inspect dependency conflicts
 mvn dependency:tree -Dverbose
 
-# 检查有效的 POM
+# View effective POM
 mvn help:effective-pom > effective-pom.xml
 ```
 
-### 逐步迁移
+### Incremental Migration
 
-如果自动迁移失败，可以逐个应用 recipe:
+If full automatic migration fails, apply recipes one by one:
 
 ```bash
-# 只升级 Spring Boot
+# Upgrade Spring Boot only
 mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
 
-# 只迁移 Java 版本
+# Migrate Java version only
 mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.migrate.UpgradeToJava17
 
-# 只迁移 Jakarta
+# Migrate Jakarta namespace only
 mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.migrate.jakarta.JavaxToJakarta
 ```
 
 ---
 
-## 获取帮助
+## Getting Help
 
-- **OpenRewrite 社区**: https://github.com/openrewrite/rewrite/discussions
+- **OpenRewrite Community**: https://github.com/openrewrite/rewrite/discussions
 - **Spring Boot Issues**: https://github.com/spring-projects/spring-boot/issues
-- **Stack Overflow**: 标签 `spring-boot-3` + `migration`
+- **Stack Overflow**: tags `spring-boot-3` + `migration`
 
 ---
 
-如果遇到本指南未覆盖的问题，请：
-1. 检查 `.migration-validation/` 目录中的完整日志
-2. 搜索 GitHub Issues 和 Stack Overflow
-3. 在项目仓库提 Issue 并附上详细日志
+If you encounter issues not covered in this guide, please:
+1. Check the full logs in the `.migration-validation/` directory
+2. Search GitHub Issues and Stack Overflow
+3. Open an Issue in this repository with detailed logs attached
