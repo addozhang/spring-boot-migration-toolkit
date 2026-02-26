@@ -6,9 +6,37 @@ POM_FILE="$PROJECT_PATH/pom.xml"
 
 echo "=== Analyzing Project ==="
 
-# Extract Spring Boot version (macOS compatible)
-SPRING_BOOT_VERSION=$(grep '<spring-boot.version>' "$POM_FILE" | sed -E 's/.*<spring-boot.version>([^<]+)<.*/\1/' || \
-                      grep '<version>' "$POM_FILE" | head -n 1 | sed -E 's/.*<version>([^<]+)<.*/\1/')
+# Detect Spring Boot version via effective-pom (handles multi-level parent inheritance,
+# custom parent POMs, and BOM imports without downloading any jar dependencies)
+echo "🔍 Resolving Spring Boot version (resolving parent chain)..."
+EFFECTIVE_POM=$(mvn -f "$POM_FILE" help:effective-pom 2>/dev/null)
+
+# Method 1: spring-boot-dependencies BOM in dependencyManagement
+SPRING_BOOT_VERSION=$(echo "$EFFECTIVE_POM" | \
+  grep -A2 'spring-boot-dependencies' | \
+  grep '<version>' | sed -E 's/.*<version>([^<]+)<.*/\1/' | head -1)
+
+# Method 2: spring-boot.version property (direct spring-boot-starter-parent descendants)
+if [ -z "$SPRING_BOOT_VERSION" ]; then
+  SPRING_BOOT_VERSION=$(echo "$EFFECTIVE_POM" | \
+    grep '<spring-boot.version>' | \
+    sed -E 's/.*<spring-boot.version>([^<]+)<.*/\1/' | head -1)
+fi
+
+# Method 3: spring-boot-starter-parent version in parent block
+if [ -z "$SPRING_BOOT_VERSION" ]; then
+  SPRING_BOOT_VERSION=$(echo "$EFFECTIVE_POM" | \
+    grep -A3 'spring-boot-starter-parent' | \
+    grep '<version>' | sed -E 's/.*<version>([^<]+)<.*/\1/' | head -1)
+fi
+
+# Method 4: fallback — spring-boot artifact version in dependencyManagement
+if [ -z "$SPRING_BOOT_VERSION" ]; then
+  SPRING_BOOT_VERSION=$(echo "$EFFECTIVE_POM" | \
+    grep -B1 '<artifactId>spring-boot</artifactId>' | \
+    grep '<version>' | sed -E 's/.*<version>([^<]+)<.*/\1/' | head -1)
+fi
+
 echo "Spring Boot Version: ${SPRING_BOOT_VERSION:-Not detected}"
 
 # Extract Java version (macOS compatible)
