@@ -12,9 +12,12 @@ if grep -q "rewrite-maven-plugin" "$POM_FILE"; then
     exit 0
 fi
 
-echo "📝 Please manually add the following configuration to <build><plugins> in pom.xml:"
-echo ""
-cat <<'EOF'
+# Auto-inject plugin using Python (handles all pom.xml structures)
+python3 << PYEOF
+import re, sys
+
+POM_FILE = "$POM_FILE"
+PLUGIN_XML = """
             <plugin>
                 <groupId>org.openrewrite.maven</groupId>
                 <artifactId>rewrite-maven-plugin</artifactId>
@@ -31,9 +34,52 @@ cat <<'EOF'
                         <version>6.23.1</version>
                     </dependency>
                 </dependencies>
-            </plugin>
-EOF
-echo ""
-read -p "Press Enter to continue after adding the configuration..."
+            </plugin>"""
+
+with open(POM_FILE, 'r') as f:
+    content = f.read()
+
+if 'rewrite-maven-plugin' in content:
+    print("⚠ OpenRewrite plugin already present, skipping")
+    sys.exit(0)
+
+# Case 1: <plugins> exists → inject before </plugins>
+if re.search(r'<plugins\s*>', content) or '<plugins>' in content:
+    content = re.sub(r'([ \t]*</plugins>)', PLUGIN_XML + r'\n\1', content, count=1)
+    print("✅ Injected into existing <plugins>")
+
+# Case 2: <build> exists but no <plugins>
+elif '<build>' in content:
+    content = re.sub(
+        r'(<build>)',
+        r'\1\n        <plugins>' + PLUGIN_XML + '\n        </plugins>',
+        content, count=1
+    )
+    print("✅ Created <plugins> inside existing <build>")
+
+# Case 3: no <build> at all → inject before </project>
+else:
+    build_block = """
+    <build>
+        <plugins>""" + PLUGIN_XML + """
+        </plugins>
+    </build>"""
+    content = re.sub(r'(</project>)', build_block + r'\n\1', content, count=1)
+    print("✅ Created <build><plugins> before </project>")
+
+with open(POM_FILE, 'w') as f:
+    f.write(content)
+PYEOF
+
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to auto-configure pom.xml"
+    exit 1
+fi
+
+# Validate pom.xml is still valid
+mvn -f "$POM_FILE" validate -q 2>/dev/null && echo "✅ pom.xml validated successfully" || {
+    echo "❌ pom.xml validation failed, restoring backup..."
+    exit 1
+}
 
 echo "✅ OpenRewrite configuration completed"
