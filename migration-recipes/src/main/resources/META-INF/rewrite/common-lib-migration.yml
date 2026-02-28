@@ -1,0 +1,42 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.example.recipes.FixHttpComponents5VersionMismatch
+displayName: Fix Apache HttpComponents 5 version mismatch
+description: >
+  Aligns httpcore5 version with httpclient5 5.4.x.
+  httpclient5 5.4.x requires httpcore5 5.3.x; this recipe sets httpcore5.version to 5.3.4.
+recipeList:
+  - org.openrewrite.maven.ChangePropertyValue:
+      key: httpcore5.version
+      newValue: 5.3.4
+      addIfMissing: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.example.recipes.MigrateCommonLibV2
+displayName: Migrate com.example.common-lib from v1 to v2
+description: Migrates deprecated ApiResponse to ApiResult, @RequireLogin to @Authenticated, and StringUtil to Spring StringUtils.
+recipeList:
+  # 1. ApiResponse.success(data) → ApiResult.ok(data)
+  #    ChangeMethodName runs first while type is still ApiResponse
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.example.common.response.ApiResponse success(..)
+      newMethodName: ok
+  # 2. ApiResponse.fail(msg) → ApiResult.error(msg)
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.example.common.response.ApiResponse fail(..)
+      newMethodName: error
+  # 3. Change type ApiResponse → ApiResult (runs after method renames)
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.common.response.ApiResponse
+      newFullyQualifiedTypeName: com.example.common.response.ApiResult
+  # 4. @RequireLogin → @Authenticated
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.common.annotation.RequireLogin
+      newFullyQualifiedTypeName: com.example.common.annotation.Authenticated
+  # 5. StringUtil → Spring's StringUtils (class reference migration)
+  #    Note: isEmpty semantics differ (StringUtil.isEmpty vs StringUtils.hasText),
+  #    so only the class reference is migrated here. Manual review recommended.
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.example.common.util.StringUtil
+      newFullyQualifiedTypeName: org.springframework.util.StringUtils
