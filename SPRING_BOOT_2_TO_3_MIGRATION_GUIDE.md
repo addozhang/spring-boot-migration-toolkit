@@ -24,7 +24,7 @@
 ```
 SB2 项目
    │
-   ├─ Step 1: mvn rewrite:run (UpgradeSpringBoot_3_3)   ← 自动处理 80%
+   ├─ Step 1: mvn rewrite:run (UpgradeSpringBoot_3_5)   ← 自动处理 80%
    │
    ├─ Step 2: 手动修复剩余编译错误                        ← 处理 ~15%
    │
@@ -57,7 +57,7 @@ SB2 项目
 ```bash
 mvn -U org.openrewrite.maven:rewrite-maven-plugin:run \
   -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-spring:LATEST \
-  -Drewrite.activeRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
+  -Drewrite.activeRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
 ```
 
 **多模块项目**只对指定模块运行：
@@ -65,7 +65,7 @@ mvn -U org.openrewrite.maven:rewrite-maven-plugin:run \
 ```bash
 mvn -U org.openrewrite.maven:rewrite-maven-plugin:run \
   -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-spring:LATEST \
-  -Drewrite.activeRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3 \
+  -Drewrite.activeRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5 \
   -pl web-app
 ```
 
@@ -276,20 +276,20 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run -pl app
 
 | # | 场景 | SB2 写法 | SB3 写法 | Recipe |
 |---|------|---------|---------|--------|
-| 1 | JPA 命名空间 | `javax.persistence.*` | `jakarta.persistence.*` | `UpgradeSpringBoot_3_3` |
-| 2 | Validation 命名空间 | `javax.validation.*` | `jakarta.validation.*` | `UpgradeSpringBoot_3_3` |
-| 3 | Servlet 命名空间 | `javax.servlet.*` | `jakarta.servlet.*` | `UpgradeSpringBoot_3_3` |
-| 4 | Spring Security 配置 | `extends WebSecurityConfigurerAdapter` | `@Bean SecurityFilterChain` | `UpgradeSpringBoot_3_3` |
-| 5 | MVC 配置 | `extends WebMvcConfigurerAdapter` | `implements WebMvcConfigurer` | `UpgradeSpringBoot_3_3` |
-| 6 | 拦截器 | `extends HandlerInterceptorAdapter` | `implements HandlerInterceptor` | `UpgradeSpringBoot_3_3` |
-| 7 | 异步配置 | `extends AsyncConfigurerSupport` | `implements AsyncConfigurer` | `UpgradeSpringBoot_3_3` |
-| 8 | JUnit 4 → 5 | `@RunWith(SpringRunner.class)` | `@ExtendWith(SpringExtension.class)` | `UpgradeSpringBoot_3_3` |
-| 9 | JUnit 断言 | `org.junit.Assert.*` | `org.junit.jupiter.api.Assertions.*` | `UpgradeSpringBoot_3_3` |
-| 10 | HTTP 客户端 | `org.apache.http.impl.client.*` | `org.apache.hc.client5.http.impl.classic.*` | `UpgradeSpringBoot_3_3` |
-| 11 | 异常处理签名 | `HttpStatus status` | `HttpStatusCode status` | `UpgradeSpringBoot_3_3` |
-| 12 | 异常状态码 | `.getStatus().value()` | `.getStatusCode().value()` | `UpgradeSpringBoot_3_3` |
-| 13 | MediaType 常量 | `APPLICATION_JSON_UTF8_VALUE` | `APPLICATION_JSON_VALUE` | `UpgradeSpringBoot_3_3` |
-| 14 | Properties key | `spring.datasource.initialization-mode` | `spring.sql.init.mode` | `UpgradeSpringBoot_3_3` |
+| 1 | JPA 命名空间 | `javax.persistence.*` | `jakarta.persistence.*` | `UpgradeSpringBoot_3_5` |
+| 2 | Validation 命名空间 | `javax.validation.*` | `jakarta.validation.*` | `UpgradeSpringBoot_3_5` |
+| 3 | Servlet 命名空间 | `javax.servlet.*` | `jakarta.servlet.*` | `UpgradeSpringBoot_3_5` |
+| 4 | Spring Security 配置 | `extends WebSecurityConfigurerAdapter` | `@Bean SecurityFilterChain` | `UpgradeSpringBoot_3_5` |
+| 5 | MVC 配置 | `extends WebMvcConfigurerAdapter` | `implements WebMvcConfigurer` | `UpgradeSpringBoot_3_5` |
+| 6 | 拦截器 | `extends HandlerInterceptorAdapter` | `implements HandlerInterceptor` | `UpgradeSpringBoot_3_5` |
+| 7 | 异步配置 | `extends AsyncConfigurerSupport` | `implements AsyncConfigurer` | `UpgradeSpringBoot_3_5` |
+| 8 | JUnit 4 → 5 | `@RunWith(SpringRunner.class)` | `@ExtendWith(SpringExtension.class)` | `UpgradeSpringBoot_3_5` |
+| 9 | JUnit 断言 | `org.junit.Assert.*` | `org.junit.jupiter.api.Assertions.*` | `UpgradeSpringBoot_3_5` |
+| 10 | HTTP 客户端 | `org.apache.http.impl.client.*` | `org.apache.hc.client5.http.impl.classic.*` | `UpgradeSpringBoot_3_5` |
+| 11 | 异常处理签名 | `HttpStatus status` | `HttpStatusCode status` | `UpgradeSpringBoot_3_5` |
+| 12 | 异常状态码 | `.getStatus().value()` | `.getStatusCode().value()` | `UpgradeSpringBoot_3_5` |
+| 13 | MediaType 常量 | `APPLICATION_JSON_UTF8_VALUE` | `APPLICATION_JSON_VALUE` | `UpgradeSpringBoot_3_5` |
+| 14 | Properties key | `spring.datasource.initialization-mode` | `spring.sql.init.mode` | `UpgradeSpringBoot_3_5` |
 
 ### 半自动迁移（Recipe + 自定义）
 
@@ -370,7 +370,7 @@ mvn dependency:tree -pl <module> | grep httpcore5
 
 ```
 openrewrite-migration-demo/
-├── pom.xml                          # Root: Spring Boot 3.3.13, rewrite-maven-plugin
+├── pom.xml                          # Root: Spring Boot 3.5.0, rewrite-maven-plugin
 ├── common-lib/                      # 内部公共库（演示内部 API 迁移）
 │   └── src/main/java/com/example/common/
 │       ├── response/ApiResult.java  # v2: ApiResponse → ApiResult
@@ -414,7 +414,7 @@ openrewrite-migration-demo/
 # 一键运行官方迁移（单模块）
 mvn -U org.openrewrite.maven:rewrite-maven-plugin:run \
   -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-spring:LATEST \
-  -Drewrite.activeRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3 \
+  -Drewrite.activeRecipes=org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5 \
   -pl <module-name>
 
 # 运行自定义 Recipe
